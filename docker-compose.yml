@@ -1,0 +1,190 @@
+version: '3.5'
+
+services:
+
+  node1:
+    container_name: node1
+    hostname: node1
+    environment:
+      - PEER_HOSTS=node1 node2 node3 node4 node5
+      - CLUSTER_NAME=demoJasonSmileClaster
+    env_file:
+      - mysql-server.env
+    image: mysql/mysql-server:latest
+    ports:
+      - 127.0.0.1:3301:3306
+    restart: unless-stopped
+    command: ["mysqld",
+      "--server_id=1",
+      "--binlog_checksum=NONE",
+      "--gtid_mode=ON",
+      "--enforce_gtid_consistency=ON",
+      "--log_bin",
+      "--log_replica_updates=ON",
+      "--user=mysql",
+      "--host_cache_size=0",
+      "--skip-name-resolve",
+      "--authentication_policy=mysql_native_password",
+       #"--innodb_force_recovery=1",
+      "--binlog_expire_logs_seconds=12000",
+      "--max_binlog_size=100M",
+      "--sql_mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"]
+    volumes:
+        - ./scripts/:/scripts/
+        - db-data1:/var/lib/mysql
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 26677
+        hard: 46677
+  node2:
+    container_name: node2
+    hostname: node2
+    env_file:
+      - mysql-server.env
+    image: mysql/mysql-server:latest
+    command: ["mysqld",
+      "--server_id=2",
+      "--binlog_checksum=NONE",
+      "--gtid_mode=ON",
+      "--enforce_gtid_consistency=ON",
+      "--log_bin",
+      "--log_replica_updates=ON",
+      "--user=mysql",
+      "--host_cache_size=0",
+      "--skip-name-resolve",
+      "--authentication_policy=mysql_native_password",
+       #"--innodb_force_recovery=1",
+      "--binlog_expire_logs_seconds=12000",
+      "--max_binlog_size=100M",
+      "--sql_mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"]
+    ports:
+      - 127.0.0.1:3302:3306
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 26677
+        hard: 46677
+    restart: unless-stopped
+  node3:
+    container_name: node3
+    hostname: node3
+    env_file:
+      - mysql-server.env
+    image: mysql/mysql-server:latest
+    command: ["mysqld",
+      "--server_id=3",
+      "--binlog_checksum=NONE",
+      "--gtid_mode=ON",
+      "--enforce_gtid_consistency=ON",
+      "--log_bin",
+      "--log_replica_updates=ON",
+      "--user=mysql",
+      "--host_cache_size=0",
+      "--skip-name-resolve",
+      "--authentication_policy=mysql_native_password",
+       #"--innodb_force_recovery=1",
+      "--binlog_expire_logs_seconds=12000",
+      "--max_binlog_size=100M",
+      "--sql_mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"]
+    ports:
+      - 127.0.0.1:3303:3306
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 26677
+        hard: 46677
+    restart: unless-stopped
+  node4:
+    container_name: node4
+    hostname: node4
+    env_file:
+      - mysql-server.env
+    image: mysql/mysql-server:latest
+    command: ["mysqld",
+      "--server_id=4",
+      "--binlog_checksum=NONE",
+      "--gtid_mode=ON",
+      "--enforce_gtid_consistency=ON",
+      "--log_bin",
+      "--log_replica_updates=ON",
+      "--user=mysql",
+      "--host_cache_size=0",
+      "--skip-name-resolve",
+      "--authentication_policy=mysql_native_password",
+       #"--innodb_force_recovery=1",
+      "--binlog_expire_logs_seconds=12000",
+      "--max_binlog_size=100M",
+      "--sql_mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"]
+    ports:
+      - 127.0.0.1:3304:3306
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 26677
+        hard: 46677
+    restart: unless-stopped
+  node5:
+    container_name: node5
+    hostname: node5
+    env_file:
+      - mysql-server.env
+    image: mysql/mysql-server:latest
+    command: ["mysqld",
+      "--server_id=5",
+      "--binlog_checksum=NONE",
+      "--gtid_mode=ON",
+      "--enforce_gtid_consistency=ON",
+      "--log_bin",
+      "--log_replica_updates=ON",
+      "--user=mysql",
+      "--host_cache_size=0",
+      "--skip-name-resolve",
+      "--authentication_policy=mysql_native_password",
+       #"--innodb_force_recovery=1",
+      "--binlog_expire_logs_seconds=12000",
+      "--max_binlog_size=100M",
+      "--sql_mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"]
+    ports:
+      - 127.0.0.1:3305:3306
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 26677
+        hard: 46677
+    restart: unless-stopped
+  mysql_router:
+    container_name: mysql_router
+    hostname: mysql_router
+    env_file:
+      - mysql-router.env
+    image: mysql/mysql-router:latest
+    ports:
+      - "127.0.0.1:6446:6446"
+      - "127.0.0.1:6447:6447"
+    restart: unless-stopped
+    depends_on:
+      - node1
+      - node2
+      - node3
+      - node4
+      - node5
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 26677
+        hard: 46677
+networks:
+    default:
+      external:
+        name: innodbnet
+volumes:
+  db-data1:
+
+
+#MYSQL EXAMPLE SIMPLE USAGE COMMANDS, the PORT 6446 the RW, port 6447 R (R-READ,W-WRITE)
+#mysql -u clasteradmin -pHZhDPU5TfZNVHQzAH8N1mQ_ADALBERT_BARTA -h 127.0.0.1 -P 6446 -e "create database demo;"
+#mysql -u clasteradmin -pHZhDPU5TfZNVHQzAH8N1mQ_ADALBERT_BARTA -h 127.0.0.1 -P 6446 demo < demo_backup.sql
+#mysql -u clasteradmin -pHZhDPU5TfZNVHQzAH8N1mQ_ADALBERT_BARTA -h 127.0.0.1 -P 6447 -e "SELECT @@hostname;USE demo; show tables; show full processlist;"
+#mysql -u clasteradmin -pHZhDPU5TfZNVHQzAH8N1mQ_ADALBERT_BARTA -h 127.0.0.1 -P 6446 -e "SELECT @@hostname;SHOW DATABASES;"
+#mysqldump -u clasteradmin -pHZhDPU5TfZNVHQzAH8N1mQ_ADALBERT_BARTA -h 127.0.0.1 -P 6446 demo > /media/backup/demo`date "+\%Y-\%m-\%d_\%H"`.sql
